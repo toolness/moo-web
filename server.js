@@ -51,20 +51,49 @@ function pipeMOOToWeb(client) {
   });
 }
 
+function exists(filename) {
+  try {
+    fs.statSync(filename);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 function unlinkIfExists(filename) {
   try {
     fs.unlinkSync(filename);
   } catch (e) {}  
 }
 
+function copyFile(src, dest) {
+  var contents = fs.readFileSync(src);
+  fs.writeFileSync(dest, contents);
+}
+
 function startMOO(cb) {
   unlinkIfExists(config.moo.socketFile);
+
+  var currentFile = config.moo.dbFile + '.current';
+  var newFile = config.moo.dbFile + '.new';
+  var backupFile = config.moo.dbFile + '.backup';
+  
+  if (exists(currentFile)) {
+    if (exists(newFile)) {
+      unlinkIfExists(backupFile);
+      fs.renameSync(currentFile, backupFile);
+      fs.renameSync(newFile, currentFile);
+    }
+  } else {
+    unlinkIfExists(newFile);
+    copyFile(config.moo.dbFile, currentFile);
+  }
 
   var args = [
     '-l',
     config.moo.logFile,
-    config.moo.inputDbFile,
-    config.moo.outputDbFile,
+    currentFile,
+    newFile,
 
     // There's a weird bug in LambdaMOO on OSX where the last
     // character of the socket filename gets clipped,
@@ -123,11 +152,7 @@ function loadConfig() {
 
   var config = loadJSONFile('config.json');
 
-  try {
-    var localStat = fs.statSync('config.local.json');
-  } catch (e) {}
-
-  if (localStat) {
+  if (exists('config.local.json')) {
     var localConfig = loadJSONFile('config.local.json');
     overlayConfig(config, localConfig);
   }

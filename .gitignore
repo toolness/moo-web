@@ -1,3 +1,6 @@
 socket.io
 moo.log
 config.local.json
+*.backup
+*.new
+*.current
