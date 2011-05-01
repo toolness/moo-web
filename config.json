@@ -1,0 +1,9 @@
+{
+  "moo": {
+    "logFile": "moo.log",
+    "inputDbFile": "moo/Minimal.db",
+    "outputDbFile": "moo/Minimal-new.db",
+    "socketFile": "moo.sock"
+  },
+  "port": 7777
+}

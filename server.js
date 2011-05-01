@@ -1,11 +1,13 @@
 var net = require('net'),
     http = require('http'),
     fs = require('fs'),
+    util = require('util'),
     io = require('./socket.io');
 
-const STATIC_FILES_DIR = 'static-files/';
-const SOCKET_FILENAME = 'moo.sock';
-const PORT = 7777;
+var config = JSON.parse(fs.readFileSync('config.json'));
+
+const STATIC_FILES_DIR = 'static-files/',
+      MOO_PROGRAM = 'moo/moo';
 
 var server = http.createServer(function(req, res) {
   var filename = null;
@@ -35,16 +37,12 @@ var server = http.createServer(function(req, res) {
 var httpSocket = io.listen(server);
 
 httpSocket.on('connection', function(client) {
-  var socket = net.createConnection(SOCKET_FILENAME);
+  var socket = net.createConnection(config.moo.socketFile);
 
   socket.setEncoding('utf8');
 
   socket.on('connect', function() {
-    console.log('connect');
-  });
-
-  socket.on('connect', function() {
-    console.log('connect');
+    //console.log('connect');
   });
 
   socket.on('data', function(chunk) {
@@ -62,33 +60,39 @@ httpSocket.on('connection', function(client) {
 
 function startMOO(cb) {
   try {
-    fs.unlinkSync(SOCKET_FILENAME);
+    fs.unlinkSync(config.moo.socketFile);
   } catch (e) {}
 
-  var moo = require('child_process').spawn('moo/moo', [
-    'moo/Minimal.db',
-    'moo/Minimal-new.db',
+  var args = [
+    '-l',
+    config.moo.logFile,
+    config.moo.inputDbFile,
+    config.moo.outputDbFile,
     // There's a weird bug in LambdaMOO where the last
     // character of the socket filename gets clipped,
     // so we'll add an extra character as a workaround.
-    SOCKET_FILENAME + ' '
-  ]);
+    config.moo.socketFile + ' '
+  ];
+
+  util.log("Spawning '" + MOO_PROGRAM + ' ' + args.join(" ") + "'");
+
+  var moo = require('child_process').spawn(MOO_PROGRAM, args);
 
   moo.on('exit', function(code) {
-    console.log('moo process terminated.');
-    fs.unlinkSync(SOCKET_FILENAME);
+    util.log('MOO process terminated');
+    fs.unlinkSync(config.moo.socketFile);
     process.exit(code);
   });
 
   process.on('SIGINT', function() {
-    console.log('shutting down...');
+    util.log('SIGINT received, shutting down MOO');
     moo.kill('SIGINT');
   });
 
-  console.log("moo started as pid " + moo.pid + ".");
+  util.log("MOO started as pid " + moo.pid);
   
   var interval = setInterval(function() {
-    fs.stat(SOCKET_FILENAME, function(err) {
+    fs.stat(config.moo.socketFile, function(err) {
       if (!err) {
         clearInterval(interval);
         cb();
@@ -98,10 +102,10 @@ function startMOO(cb) {
 }
 
 startMOO(function() {
-  server.listen(PORT);
-  console.log("now listening on port " + PORT + ".");
+  server.listen(config.port);
+  util.log("Now listening on port " + config.port);
   process.on('uncaughtException', function(err) {
-    console.error(err.stack);
-    console.error(err.message);    
+    util.log(err.stack);
+    util.log(err.message);    
   });
 });
