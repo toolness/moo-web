@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>hi</title>
+<style>
+html, body {
+  font-family: Baskerville, Georgia, serif;
+  width: 40em;
+  margin: 1em auto 1.5em auto;
+}
+
+div.line {
+  padding-top: 0.1em;
+  padding-bottom: 0.1em;
+  white-space: pre-wrap;
+}
+
+div.line.user {
+  color: gray;
+  cursor: pointer;
+}
+
+div.line.user:hover {
+  background: #f0f0f0;
+}
+
+#input {
+  display: block;
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+}
+
+#input .container {
+  width: 40em;
+  margin: 0 auto;
+}
+
+input#text {
+  border: none;
+  width: 38em;
+  font-size: inherit;
+  font-family: inherit;
+  background: inherit;
+  color: inherit;
+}
+
+input#text:focus {
+  outline: none;
+}
+</style>
+<div id="content"></div>
+<form id="input" style="display: none;">
+  <div class="container">
+  &gt; <input type="text" id="text" autocomplete="off"></input>
+  </div>
+</form>
+<script src="/jquery.min.js"></script>
+<script src="/jquery.scrollTo-min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+$(window).ready(function() {
+  var socket = new io.Socket();
+  socket.connect();
+  socket.on('connect', function() {
+    $("#input").fadeIn();
+    $("input#text").focus();
+  });
+  socket.on('disconnect', function() {
+    $("#input").fadeOut();
+  });
+  socket.on('message', function(msg) {
+    lines = msg.split('\n');
+    lines.forEach(function(line) {
+      var elem = $('<div class="line"></div>');
+      elem.text(line);
+      $("#content").append(elem);
+      $.scrollTo('max');
+    });
+  });
+  $("form#input").submit(function() {
+    var input = $("input#text").val();
+    var line = $('<div class="user line"></div>');
+    line.text('> ' + input);
+    line.click(function() {
+      $("input#text").val(input).focus();
+    });
+    $("#content").append(line);
+    socket.send(input + '\n');
+    $("input#text").val('');
+    $.scrollTo('max');
+    return false;
+  });
+});
+</script>
