@@ -5,6 +5,7 @@ var net = require('net'),
 
 const STATIC_FILES_DIR = 'static-files/';
 const SOCKET_FILENAME = 'moo.sock';
+const PORT = 7777;
 
 var server = http.createServer(function(req, res) {
   var filename = null;
@@ -59,7 +60,7 @@ httpSocket.on('connection', function(client) {
   });
 });
 
-function startMOO() {
+function startMOO(cb) {
   try {
     fs.unlinkSync(SOCKET_FILENAME);
   } catch (e) {}
@@ -85,7 +86,22 @@ function startMOO() {
   });
 
   console.log("moo started as pid " + moo.pid + ".");
+  
+  var interval = setInterval(function() {
+    fs.stat(SOCKET_FILENAME, function(err) {
+      if (!err) {
+        clearInterval(interval);
+        cb();
+      }
+    });
+  }, 100);
 }
 
-startMOO();
-server.listen(7777);
+startMOO(function() {
+  server.listen(PORT);
+  console.log("now listening on port " + PORT + ".");
+  process.on('uncaughtException', function(err) {
+    console.error(err.stack);
+    console.error(err.message);    
+  });
+});
