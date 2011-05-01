@@ -65,10 +65,12 @@ function startMOO(cb) {
     config.moo.logFile,
     config.moo.inputDbFile,
     config.moo.outputDbFile,
-    // There's a weird bug in LambdaMOO where the last
+
+    // There's a weird bug in LambdaMOO on OSX where the last
     // character of the socket filename gets clipped,
     // so we'll add an extra character as a workaround.
-    config.moo.socketFile + ' '
+
+    config.moo.socketFile + (process.platform == 'darwin' ? ' ' : '')
   ];
 
   util.log("Spawning '" + MOO_PROGRAM + ' ' + args.join(" ") + "'");
