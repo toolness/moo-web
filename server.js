@@ -4,7 +4,7 @@ var net = require('net'),
     util = require('util'),
     io = require('./socket.io');
 
-var config = JSON.parse(fs.readFileSync('config.json'));
+var config = null;
 
 const STATIC_FILES_DIR = 'static-files/',
       MOO_PROGRAM = 'moo/moo';
@@ -41,10 +41,6 @@ httpSocket.on('connection', function(client) {
 
   socket.setEncoding('utf8');
 
-  socket.on('connect', function() {
-    //console.log('connect');
-  });
-
   socket.on('data', function(chunk) {
     client.send(chunk);
   });
@@ -58,10 +54,14 @@ httpSocket.on('connection', function(client) {
   });
 });
 
-function startMOO(cb) {
+function unlinkIfExists(filename) {
   try {
-    fs.unlinkSync(config.moo.socketFile);
-  } catch (e) {}
+    fs.unlinkSync(filename);
+  } catch (e) {}  
+}
+
+function startMOO(cb) {
+  unlinkIfExists(config.moo.socketFile);
 
   var args = [
     '-l',
@@ -79,8 +79,8 @@ function startMOO(cb) {
   var moo = require('child_process').spawn(MOO_PROGRAM, args);
 
   moo.on('exit', function(code) {
-    util.log('MOO process terminated');
-    fs.unlinkSync(config.moo.socketFile);
+    util.log('MOO process terminated with exit code ' + code);
+    unlinkIfExists(config.moo.socketFile);
     process.exit(code);
   });
 
@@ -100,6 +100,43 @@ function startMOO(cb) {
     });
   }, 100);
 }
+
+function loadConfig() {
+  function loadJSONFile(filename) {
+    var obj = null;
+    try {
+      return JSON.parse(fs.readFileSync(filename));
+    } catch (e) {
+      util.log("Error parsing " + filename + ": " + e);
+      process.exit(1);
+    }
+  }
+
+  function overlayConfig(config, localConfig) {
+    for (var name in localConfig) {
+      if (typeof(localConfig[name]) == 'object' &&
+          localConfig[name] !== null)
+        overlayConfig(config[name], localConfig[name]);
+      else
+        config[name] = localConfig[name];
+    }
+  }
+
+  var config = loadJSONFile('config.json');
+
+  try {
+    var localStat = fs.statSync('config.local.json');
+  } catch (e) {}
+
+  if (localStat) {
+    var localConfig = loadJSONFile('config.local.json');
+    overlayConfig(config, localConfig);
+  }
+  
+  return config;
+}
+
+config = loadConfig();
 
 startMOO(function() {
   server.listen(config.port);
