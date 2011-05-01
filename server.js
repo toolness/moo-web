@@ -1,5 +1,4 @@
 var net = require('net'),
-    http = require('http'),
     fs = require('fs'),
     util = require('util'),
     io = require('./socket.io');
@@ -9,7 +8,7 @@ var config = null;
 const STATIC_FILES_DIR = 'static-files/',
       MOO_PROGRAM = 'moo/moo';
 
-var server = http.createServer(function(req, res) {
+function staticFileServer(req, res) {
   var filename = null;
   var mimetype = null;
   
@@ -32,11 +31,9 @@ var server = http.createServer(function(req, res) {
     res.writeHead(404, {'Content-Type': 'text/plain'});
     res.end('not found');
   }
-});
+}
 
-var httpSocket = io.listen(server);
-
-httpSocket.on('connection', function(client) {
+function pipeMOOToWeb(client) {
   var socket = net.createConnection(config.moo.socketFile);
 
   socket.setEncoding('utf8');
@@ -52,7 +49,7 @@ httpSocket.on('connection', function(client) {
   client.on('disconnect', function() {
     socket.end();
   });
-});
+}
 
 function unlinkIfExists(filename) {
   try {
@@ -139,8 +136,29 @@ function loadConfig() {
 config = loadConfig();
 
 startMOO(function() {
+  var server;
+  var protocol;
+  
+  if ('key' in config) {
+    protocol = 'https';
+    server = require('https').createServer({
+      key: fs.readFileSync(config.key),
+      cert: fs.readFileSync(config.cert),
+      ca: fs.readFileSync(config.ca)
+    }, staticFileServer);
+  } else {
+    protocol = 'http';
+    server = require('http').createServer(staticFileServer);
+  }
+  
+  var httpSocket = io.listen(server);
+
+  httpSocket.on('connection', pipeMOOToWeb);
   server.listen(config.port);
-  util.log("Now listening on port " + config.port);
+
+  util.log("Now listening on port " + config.port +
+           " using " + protocol);
+
   process.on('uncaughtException', function(err) {
     util.log(err.stack);
     util.log(err.message);    

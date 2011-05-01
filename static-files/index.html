@@ -62,7 +62,9 @@ input#text:focus {
 <script src="/socket.io/socket.io.js"></script>
 <script>
 $(window).ready(function() {
-  var socket = new io.Socket();
+  var socket = new io.Socket(location.hostname, {
+    secure: location.protocol == "https:"
+  });
   socket.connect();
   socket.on('connect', function() {
     $("#input").fadeIn();
