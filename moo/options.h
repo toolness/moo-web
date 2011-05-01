@@ -107,7 +107,7 @@
  * file name is given on the command line.
  */
 
-#define NETWORK_PROTOCOL 	NP_TCP
+#define NETWORK_PROTOCOL 	NP_LOCAL
 
 #define DEFAULT_PORT 		7777
 #define DEFAULT_CONNECT_FILE	"/tmp/.MOO-server"
