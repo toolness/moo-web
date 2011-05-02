@@ -4,5 +4,15 @@
     "dbFile": "moo/Minimal.db",
     "socketFile": "moo.sock"
   },
+  "io": {
+    "flashPolicyServer": false,
+    "transports": [
+      "websocket",
+      "xhr-multipart",
+      "xhr-polling",
+      "jsonp-polling",
+      "htmlfile"
+    ]
+  },
   "port": 7777
 }

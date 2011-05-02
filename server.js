@@ -178,7 +178,7 @@ startMOO(function() {
     server = require('http').createServer(staticFileServer);
   }
   
-  var httpSocket = io.listen(server);
+  var httpSocket = io.listen(server, config.io);
 
   httpSocket.on('connection', pipeMOOToWeb);
   server.listen(config.port);
