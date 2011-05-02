@@ -74,13 +74,16 @@ $(window).ready(function() {
     $("#input").fadeOut();
   });
   socket.on('message', function(msg) {
+    var maxScroll = $.scrollTo.max(document.body, 'y');
+    var currScroll = window.pageYOffset;
     lines = msg.split('\n');
     lines.forEach(function(line) {
       var elem = $('<div class="line"></div>');
       elem.text(line);
       $("#content").append(elem);
-      $.scrollTo('max');
     });
+    if (currScroll == maxScroll)
+      $.scrollTo('max');
   });
   $("form#input").submit(function() {
     var input = $("input#text").val();
