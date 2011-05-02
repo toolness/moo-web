@@ -1,37 +1,61 @@
 var net = require('net'),
     fs = require('fs'),
     util = require('util'),
+    url = require('url'),
     io = require('./socket.io');
 
 var config = null;
 
-const STATIC_FILES_DIR = 'static-files/',
-      MOO_PROGRAM = 'moo/moo';
+const STATIC_FILES_DIR = __dirname + '/static-files',
+      MOO_PROGRAM = __dirname + '/moo/moo';
+
+const MIME_TYPES = {
+  js: 'application/javascript',
+  html: 'text/html'
+};
 
 function staticFileServer(req, res) {
-  var filename = null;
-  var mimetype = null;
+  var path = url.parse(req.url).pathname;
+  var staticFilePath = STATIC_FILES_DIR + path;
   
-  switch (req.url) {
-    case '/':
-    filename = 'index.html';
-    mimetype = 'text/html';
-    break;
-    
-    case '/jquery.min.js':
-    case '/jquery.scrollTo-min.js':
-    filename = req.url.slice(1);
-    mimetype = 'application/javascript';
+  function return404() {
+    res.writeHead(404, {'Content-Type': 'text/plain'});
+    res.end('not found: ' + path);
   }
 
-  if (filename) {
-    res.writeHead(200, {'Content-Type': mimetype});
-    var out = fs.createReadStream(STATIC_FILES_DIR + filename);
-    out.pipe(res);
-  } else {
-    res.writeHead(404, {'Content-Type': 'text/plain'});
-    res.end('not found: ' + req.url);
-  }
+  if (staticFilePath.match(/\/$/))
+    staticFilePath += 'index.html';
+
+  fs.realpath(staticFilePath, function(err, resolvedPath) {
+    if (!err && resolvedPath.indexOf(STATIC_FILES_DIR + '/') == 0) {
+      var extMatch = resolvedPath.match(/\.([a-z]+)$/);
+      var mimetype;
+
+      if (extMatch && extMatch[1] in MIME_TYPES) {
+        mimetype = MIME_TYPES[extMatch[1]];
+
+        fs.stat(resolvedPath, function(err, stats) {
+          if (!err && stats.isFile()) {
+            if (req.headers['if-none-match'] == stats.mtime) {
+              res.writeHead(304);
+              res.end();
+            } else {
+              res.writeHead(200, {
+                'Content-Length': stats.size,
+                'Content-Type': mimetype,
+                'ETag': stats.mtime
+              });
+              var out = fs.createReadStream(resolvedPath);
+              out.pipe(res);
+            }
+          } else
+            return404();
+        });
+      } else
+        return404();
+    } else
+      return404();
+  });
 }
 
 function pipeMOOToWeb(client) {
