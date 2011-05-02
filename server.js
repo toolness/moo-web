@@ -26,10 +26,11 @@ function staticFileServer(req, res) {
 
   if (filename) {
     res.writeHead(200, {'Content-Type': mimetype});
-    res.end(fs.readFileSync(STATIC_FILES_DIR + filename));
+    var out = fs.createReadStream(STATIC_FILES_DIR + filename);
+    out.pipe(res);
   } else {
     res.writeHead(404, {'Content-Type': 'text/plain'});
-    res.end('not found');
+    res.end('not found: ' + req.url);
   }
 }
 
