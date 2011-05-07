@@ -1,6 +1,6 @@
 # Introduction
 
-This is an attempt to run a [MOO][] server with a Web-only interface. It's basically just some client-side JS that communicates with a [Node][] server via [Socket.io][], which itself forwards input from a MOO served via a unix domain socket.
+This is an attempt to run a [MOO][] server with a Web interface similar to [Parchment][]. It's basically just some client-side JS that communicates with a [Node][] server via [Socket.io][], which itself forwards input from a MOO served via a unix domain socket.
 
 The server automatically takes care of starting the MOO server process, performing MOO database file rotation, and cleanly shutting down the MOO server on `SIGINT`.
 
@@ -33,6 +33,7 @@ Once all this is done, run `node server.js` to start the server, and then open y
 
 Actually creating anything worthwhile on the MOO requires an easier editing interface, which this project currently lacks.
 
+  [Parchment]: http://www.toolness.com/wp/2008/06/introducing-parchment/
   [MOO]: http://en.wikipedia.org/wiki/MOO
   [Node]: http://nodejs.org/
   [Socket.io]: http://socket.io/
