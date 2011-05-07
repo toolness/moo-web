@@ -25,7 +25,7 @@ You'll probably want to create a file called `config.local.json` that contains s
       "ca": "ca.pem"
     }
 
-If you don't want to serve over SSL, leave out the `key`, `cert`, and `ca` keys.
+If you don't want to serve over SSL, leave out the `key`, `cert`, and `ca` information.
 
 Once all this is done, run `node server.js` to start the server, and then open your browser to 127.0.0.1:7777.
 
