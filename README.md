@@ -38,6 +38,14 @@ information.
 Once all this is done, run `node server.js` to start the server, and then open
 your browser to 127.0.0.1:7777.
 
+Check out [Getting Started with your LambdaCore MOO][starting] for help on
+setting up the MOO itself. You might also want to take a look at:
+
+  * [LambdoMOO Beginners Quick Reference][quickref]
+  * [The LambdaCore Database User's Manual][coreuserman]
+  * [The LambdaCore Database Programmer's Manual][coreprogman]
+  * [The LambdaMOO Programmer's Manual][progman]
+
 # Limitations
 
 Actually creating anything worthwhile on the MOO requires an easier editing
@@ -47,3 +55,8 @@ interface, which this project currently lacks.
   [MOO]: http://en.wikipedia.org/wiki/MOO
   [Node]: http://nodejs.org/
   [Socket.io]: http://socket.io/
+  [starting]: http://www.moo.mud.org/moo-faq/lcore-getting-started.html
+  [coreuserman]: http://cmc.uib.no/moo/docs/manuals/formatted/html/LambdaCoreUserMan.html
+  [coreprogman]: http://cmc.uib.no/moo/docs/manuals/formatted/html/LambdaCoreProgMan.html
+  [progman]: http://cmc.uib.no/moo/docs/manuals/formatted/html/ProgrammersManual.html
+  [quickref]: ftp://ftp.parc.xerox.com/pub/MOO/contrib/docs/quick-reference.txt
