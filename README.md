@@ -9,7 +9,7 @@ The server automatically takes care of starting the MOO server process,
 performing MOO database file rotation, and cleanly shutting down the MOO
 server on `SIGINT`.
 
-MOO was chosen instead of creating a similar engine from-scratch due to its
+MOO was chosen instead of creating a similar engine from scratch due to its
 maturity and extensive documentation.
 
 # Installation
